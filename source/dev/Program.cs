@@ -1,4 +1,5 @@
-﻿using hw.Helper;
+﻿using hw.DebugFormatter;
+using hw.Helper;
 using Ical.Net;
 using Ical.Net.Serialization;
 
@@ -8,11 +9,18 @@ var icsFile = SmbFile
     .OrderByDescending(f => f.ModifiedDate)
     .First();
 
-var calendar = Calendar.Load(icsFile.String);
-var events = calendar.Events.Where(@event => @event.Description.Trim() != "").ToArray();
-calendar.Events.Clear();
-calendar.Events.AddRange(events);
-
-var serializer = new CalendarSerializer(new SerializationContext());
-icsFile.String = serializer.SerializeToString(calendar);
+Strip(icsFile);
 return;
+
+void Strip(SmbFile smbFile)
+{
+    ("Converting "+ smbFile.FullName + " ...").Log();
+    var calendar = Calendar.Load(smbFile.String);
+    var events = calendar.Events.Where(@event => @event.Description.Trim() != "").ToArray();
+    calendar.Events.Clear();
+    calendar.Events.AddRange(events);
+
+    var serializer = new ComponentSerializer(new SerializationContext());
+    smbFile.String = serializer.SerializeToString(calendar);
+    ("Converting "+ smbFile.FullName + " complete").Log();
+}
